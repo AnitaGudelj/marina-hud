@@ -1,0 +1,33 @@
+.hud {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(255,255,255,.92);
+  padding: 10px 12px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+  z-index: 9999;
+}
+.hud .row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.hud .pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+}
+.toast {
+  position: fixed;
+  top: 64px;
+  right: 12px;
+  background: rgba(0,0,0,.85);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity .3s;
+  z-index: 10000;
+}
+.toast.show { opacity: 1; }
