@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Marina HUD</title>
+<style>
+  * { box-sizing: border-box; font-family: system-ui, Arial, sans-serif; }
+  .hud { position: fixed; top: 12px; right: 12px; background: rgba(255,255,255,.92);
+         padding: 10px 12px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+  .row { display: flex; gap: 12px; align-items: center; }
+  .pill { padding: 2px 8px; border-radius: 999px; border: 1px solid #ddd; }
+  .toast { position: fixed; top: 64px; right: 12px; background: rgba(0,0,0,.85);
+           color: #fff; padding: 10px 12px; border-radius: 10px; opacity: 0; transition: opacity .3s; }
+  .toast.show { opacity: 1; }
+  small { opacity: .7; }
+  button { margin-left: 8px; }
+</style>
+<body>
+  <div class="hud">
+    <div class="row">
+      <div class="pill" id="coins">💰 0</div>
+      <div class="pill" id="eco">🌱 0</div>
+      <small id="label"></small>
+      <button id="reset" title="Reset to start">↺</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  // ---- Konfiguracija startnih vrijednosti ----
+  const START_COINS = 1000;
+  const START_ECO   = 100;
+
+  // ---- LocalStorage ključevi ----
+  const K_COINS = "martinaCoins";
+  const K_ECO   = "martinaEco";
+
+  // ---- Pomoćne funkcije ----
+  const qs = new URLSearchParams(location.search);
+  const toInt = (v, def=0) => isNaN(parseInt(v)) ? def : parseInt(v);
+
+  const get = (k, d) => {
+    const v = localStorage.getItem(k);
+    return v === null ? d : toInt(v, d);
+  };
+  const set = (k, v) => localStorage.setItem(k, String(v));
+
+  // Inicijalizacija ako ne postoji
+  let coins = get(K_COINS, START_COINS);
+  let eco   = get(K_ECO,   START_ECO);
+
+  // Primijeni delte iz URL-a (npr. ?coins=-200&eco=+10&label=Expand+marina)
+  const dCoins = toInt(qs.get("coins"), 0);
+  const dEco   = toInt(qs.get("eco"),   0);
+  const label  = qs.get("label") || "";
+
+  if (dCoins !== 0 || dEco !== 0) {
+    coins += dCoins;
+    eco   += dEco;
+    set(K_COINS, coins);
+    set(K_ECO, eco);
+    showToast(deltaText(dCoins, dEco, label));
+  }
+
+  // Render
+  document.getElementById("coins").textContent = `💰 ${coins}`;
+  document.getElementById("eco").textContent   = `🌱 ${eco}`;
+  document.getElementById("label").textContent = label ? `· ${label}` : "";
+
+  // Reset gumb (korisno za testiranje)
+  document.getElementById("reset").addEventListener("click", () => {
+    coins = START_COINS; eco = START_ECO;
+    set(K_COINS, coins); set(K_ECO, eco);
+    document.getElementById("coins").textContent = `💰 ${coins}`;
+    document.getElementById("eco").textContent   = `🌱 ${eco}`;
+    showToast("Reset to start values");
+  });
+
+  function deltaText(dc, de, label) {
+    const p1 = dc ? (dc>0?`+${dc}`:dc) + " 💰" : "";
+    const p2 = de ? (de>0?`+${de}`:de) + " 🌱" : "";
+    return [p1,p2,label && `(${label})`].filter(Boolean).join(" · ");
+  }
+  function showToast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 1800);
+  }
+
+  // --- (Opcionalno) “AI” način ---
+  // Ako dodaš ?ai=1, ovdje možeš pozvati svoj endpoint koji
+  // na temelju konteksta vraća preporučene delte (coins/eco).
+  // Npr. fetch('/ai-adjust', {method:'POST', body: JSON.stringify({...})})
+  // i zatim primijeniti dobivene vrijednosti na isti način kao gore.
+})();
+</script>
+</body>
+</html>
